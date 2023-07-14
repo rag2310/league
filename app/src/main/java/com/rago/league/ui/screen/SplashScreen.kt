@@ -28,15 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import com.rago.league.R
+import com.rago.league.presentation.uistate.SplashUIState
 
 @Composable
-fun SplashScreen() {
-    SplashScreenContent()
+fun SplashScreen(splashUIState: SplashUIState) {
+    SplashScreenContent(splashUIState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SplashScreenContent() {
+private fun SplashScreenContent(splashUIState: SplashUIState) {
     val scaleAnimation: Animatable<Float, AnimationVector1D> =
         remember {
             Animatable(initialValue = 0f)
@@ -45,10 +46,8 @@ private fun SplashScreenContent() {
     AnimationSplashContent(
         scaleAnimation = scaleAnimation,
         durationMillisAnimation = 1500,
-        success = false,
-        onNav = {
-
-        }
+        success = splashUIState.success,
+        onNav = splashUIState.onNavHome
     )
 
     Scaffold(

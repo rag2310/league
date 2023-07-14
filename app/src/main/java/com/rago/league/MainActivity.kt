@@ -6,14 +6,26 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.rago.league.presentation.uistate.SplashUIState
+import com.rago.league.presentation.viewmodel.SplashViewModel
+import com.rago.league.ui.screen.HomeScreen
 import com.rago.league.ui.screen.SplashScreen
 import com.rago.league.ui.theme.LeagueTheme
+import com.rago.league.ui.utils.AppScreensImpl.*
+import com.rago.league.utils.navigateWithPopUp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +37,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                   SplashScreen()
+                    LeagueScreen()
                 }
             }
         }
@@ -33,17 +45,25 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+private fun LeagueScreen() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = SplashScreen.route) {
+        composable(SplashScreen.route) {
+            val splashViewModel: SplashViewModel = hiltViewModel()
+            val splashUIState: SplashUIState by splashViewModel.splashUIState.collectAsState()
+            LaunchedEffect(key1 = Unit, block = {
+                splashUIState.setOnNavHome {
+                    navController.navigateWithPopUp(
+                        HomeScreen.route,
+                        SplashScreen.route
+                    )
+                }
+            })
+            SplashScreen(splashUIState = splashUIState)
+        }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LeagueTheme {
-        Greeting("Android")
+        composable(HomeScreen.route) {
+            HomeScreen()
+        }
     }
 }
