@@ -57,6 +57,7 @@ private fun SplashScreenContent(splashUIState: SplashUIState) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.White)
                 .padding(it)
         ) {
             DesignSplashScreen(
@@ -116,7 +117,7 @@ fun DesignSplashScreen(
                     .fillMaxWidth()
                     .aspectRatio(1f)
             )
-            Text(text = "League", style = MaterialTheme.typography.titleMedium)
+            Text(text = "League App", style = MaterialTheme.typography.titleMedium)
         }
     }
 }

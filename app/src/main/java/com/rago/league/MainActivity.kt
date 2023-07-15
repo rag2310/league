@@ -13,11 +13,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.google.gson.Gson
+import com.rago.league.data.model.Team
+import com.rago.league.presentation.uistate.HomeUIState
 import com.rago.league.presentation.uistate.SplashUIState
+import com.rago.league.presentation.viewmodel.HomeViewModel
 import com.rago.league.presentation.viewmodel.SplashViewModel
+import com.rago.league.ui.screen.DetailsTeamScreen
 import com.rago.league.ui.screen.HomeScreen
 import com.rago.league.ui.screen.SplashScreen
 import com.rago.league.ui.theme.LeagueTheme
@@ -34,8 +41,7 @@ class MainActivity : ComponentActivity() {
             LeagueTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     LeagueScreen()
                 }
@@ -54,8 +60,7 @@ private fun LeagueScreen() {
             LaunchedEffect(key1 = Unit, block = {
                 splashUIState.setOnNavHome {
                     navController.navigateWithPopUp(
-                        HomeScreen.route,
-                        SplashScreen.route
+                        HomeScreen.route, SplashScreen.route
                     )
                 }
             })
@@ -63,7 +68,22 @@ private fun LeagueScreen() {
         }
 
         composable(HomeScreen.route) {
-            HomeScreen()
+            val homeViewModel: HomeViewModel = hiltViewModel()
+            val homeUIState: HomeUIState by homeViewModel.homeUIState.collectAsState()
+            LaunchedEffect(key1 = Unit, block = {
+                homeUIState.setOnNavDetails {
+                    navController.navigate("${DetailsTeamScreen.route}/$it")
+                }
+            })
+            HomeScreen(homeUIState = homeUIState)
+        }
+
+        composable("${DetailsTeamScreen.route}/{team}", arguments = listOf(navArgument("team") {
+            type = NavType.StringType
+        })) {
+            val json = it.arguments?.getString("team")
+            val team = Gson().fromJson(json, Team::class.java)
+            DetailsTeamScreen(team.strTeam)
         }
     }
 }
