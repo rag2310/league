@@ -20,7 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentPasteOff
 import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.FilterAltOff
+import androidx.compose.material.icons.filled.GetApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,6 +51,7 @@ import coil.request.ImageRequest
 import com.rago.league.R
 import com.rago.league.data.model.Team
 import com.rago.league.presentation.uistate.HomeUIState
+import com.rago.league.presentation.uistate.State
 import com.rago.league.presentation.uistate.TeamSearch
 
 @Composable
@@ -56,7 +60,11 @@ fun HomeScreen(homeUIState: HomeUIState) {
         Dialog(onDismissRequest = homeUIState.onHideDialogSearch) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp), horizontalArrangement = Arrangement.Center
+                    ) {
                         Text(text = "Busqueda por", style = MaterialTheme.typography.titleMedium)
                     }
                     Row(
@@ -137,12 +145,28 @@ private fun HomeScreenContent(homeUIState: HomeUIState) {
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.titleLarge
                 )
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    onClick = homeUIState.onShowDialogSearch
-                ) {
-                    Icon(Icons.Filled.FilterAlt, contentDescription = "Filter")
+                Crossfade(modifier = Modifier.align(Alignment.CenterEnd),targetState = homeUIState.search.isEmpty()) {
+                    if (it) {
+                        IconButton(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            onClick = homeUIState.onShowDialogSearch,
+                            enabled = homeUIState.state == State.SUCCESS
+                        ) {
+                            Icon(Icons.Filled.FilterAlt, contentDescription = "Buscar")
+                        }
+                    }
+
+                    if (!it) {
+                        IconButton(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            onClick = homeUIState.clearFilter,
+                            enabled = homeUIState.state == State.SUCCESS
+                        ) {
+                            Icon(Icons.Filled.FilterAltOff, contentDescription = "Limpiar Filtro")
+                        }
+                    }
                 }
+
             }
         }) {
         Box(
@@ -151,25 +175,59 @@ private fun HomeScreenContent(homeUIState: HomeUIState) {
                 .background(Color.White)
                 .padding(it)
         ) {
-            Crossfade(targetState = homeUIState.teams.size) { teams ->
-                if (teams == 0) {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator()
-                        Spacer(modifier = Modifier.height(15.dp))
-                        Text(text = "Obteniendo Equipos")
-                    }
-                }
-
-                if (teams > 0) {
-                    LazyColumn(content = {
-                        items(homeUIState.teams) { team ->
-                            CardTeam(team = team, homeUIState.onNavDetails)
+            Crossfade(targetState = homeUIState.state) { state ->
+                when (state) {
+                    State.LOADING -> {
+                        Column(
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                            Spacer(modifier = Modifier.height(15.dp))
+                            Text(text = "Obteniendo Equipos")
                         }
-                    })
+                    }
+
+                    State.SUCCESS -> {
+                        Crossfade(targetState = homeUIState.teams.size) { size ->
+                            if (size == 0) {
+                                Column(
+                                    Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        Icons.Filled.ContentPasteOff,
+                                        contentDescription = "Lista Vacía"
+                                    )
+                                    Spacer(modifier = Modifier.height(30.dp))
+                                    Text(text = "Sin resultados")
+                                }
+                            }
+
+                            if (size > 0) {
+                                LazyColumn(content = {
+                                    items(homeUIState.teams) { team ->
+                                        CardTeam(team = team, homeUIState.onNavDetails)
+                                    }
+                                })
+                            }
+                        }
+                    }
+
+                    State.ERROR -> {
+                        Column(
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Button(onClick = homeUIState.getTeams) {
+                                Text(text = "Reintentar")
+                            }
+                            Text(text = homeUIState.error)
+                        }
+                    }
                 }
             }
         }

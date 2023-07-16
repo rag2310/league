@@ -21,21 +21,21 @@ data class Team(
     val intStadiumCapacity: String,
     val strAlternate: String,
     val strCountry: String,
-    val strDescriptionCN: String,
-    val strDescriptionDE: String,
-    val strDescriptionEN: String,
-    val strDescriptionES: String,
-    val strDescriptionFR: Any,
-    val strDescriptionHU: String,
-    val strDescriptionIL: String,
-    val strDescriptionIT: String,
-    val strDescriptionJP: String,
-    val strDescriptionNL: String,
-    val strDescriptionNO: String,
-    val strDescriptionPL: String,
-    val strDescriptionPT: String,
-    val strDescriptionRU: String,
-    val strDescriptionSE: String,
+    val strDescriptionCN: String? = null,
+    val strDescriptionDE: String? = null,
+    val strDescriptionEN: String? = null,
+    val strDescriptionES: String? = null,
+    val strDescriptionFR: String? = null,
+    val strDescriptionHU: String? = null,
+    val strDescriptionIL: String? = null,
+    val strDescriptionIT: String? = null,
+    val strDescriptionJP: String? = null,
+    val strDescriptionNL: String? = null,
+    val strDescriptionNO: String? = null,
+    val strDescriptionPL: String? = null,
+    val strDescriptionPT: String? = null,
+    val strDescriptionRU: String? = null,
+    val strDescriptionSE: String? = null,
     val strDivision: Any,
     val strFacebook: String,
     val strGender: String,
@@ -69,7 +69,7 @@ data class Team(
     val strTeamFanArt3: String,
     @SerializedName("strTeamFanart4")
     val strTeamFanArt4: String,
-    val strTeamJersey: String,
+    val strTeamJersey: String?,
     val strTeamLogo: String,
     val strTeamShort: String,
     val strTwitter: String,
@@ -80,3 +80,9 @@ data class Team(
         return Uri.encode(Gson().toJson(this))
     }
 }
+
+
+data class DescriptionRegion(
+    val code: String,
+    val description: String
+)

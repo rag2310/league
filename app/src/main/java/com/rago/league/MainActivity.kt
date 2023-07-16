@@ -83,7 +83,9 @@ private fun LeagueScreen() {
         })) {
             val json = it.arguments?.getString("team")
             val team = Gson().fromJson(json, Team::class.java)
-            DetailsTeamScreen(team.strTeam)
+            DetailsTeamScreen(team) {
+                navController.popBackStack()
+            }
         }
     }
 }

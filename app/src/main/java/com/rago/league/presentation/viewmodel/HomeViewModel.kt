@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.rago.league.data.model.Team
 import com.rago.league.data.repositories.TeamRepository
 import com.rago.league.presentation.uistate.HomeUIState
+import com.rago.league.presentation.uistate.State
 import com.rago.league.presentation.uistate.TeamSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,7 +26,9 @@ class HomeViewModel @Inject constructor(
             onShowDialogSearch = ::onShowDialogSearch,
             onHideDialogSearch = ::onHideDialogSearch,
             onSearch = ::onSearch,
-            setOnNavDetails = ::setOnNavDetails
+            setOnNavDetails = ::setOnNavDetails,
+            getTeams = ::getTeams,
+            clearFilter = ::clearFilter
         )
     )
     val homeUIState: StateFlow<HomeUIState> = _homeUIState.asStateFlow()
@@ -38,16 +40,22 @@ class HomeViewModel @Inject constructor(
     private fun getTeams() {
         viewModelScope.launch {
             _homeUIState.update { uiState ->
-                uiState.copy(loading = true)
+                uiState.copy(state = State.LOADING, error = "")
             }
             teamRepository.getTeams().collect { genericResponse ->
                 genericResponse.error?.let {
-
+                    _homeUIState.update { uiState ->
+                        uiState.copy(state = State.ERROR, error = it)
+                    }
                 }
 
                 genericResponse.data?.let { teams ->
                     _homeUIState.update { uiState ->
-                        uiState.copy(loading = false, teams = teams.teams)
+                        uiState.copy(
+                            state = State.SUCCESS,
+                            teams = teams.teams,
+                            originalTeams = teams.teams
+                        )
                     }
                 }
             }
@@ -88,9 +96,12 @@ class HomeViewModel @Inject constructor(
 
     private fun onSearch() {
         viewModelScope.launch {
+            _homeUIState.update {
+                it.copy(teams = _homeUIState.value.originalTeams)
+            }
             val list = when (_homeUIState.value.teamSearch) {
                 TeamSearch.NAME -> _homeUIState.value.teams.filter {
-                    it.strTeam.contains(
+                    it.strTeam.lowercase().contains(
                         _homeUIState.value.search
                     )
                 }
@@ -111,6 +122,14 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _homeUIState.update {
                 it.copy(onNavDetails = onNavDetails)
+            }
+        }
+    }
+
+    private fun clearFilter() {
+        viewModelScope.launch {
+            _homeUIState.update {
+                it.copy(teams = _homeUIState.value.originalTeams, search = "")
             }
         }
     }
