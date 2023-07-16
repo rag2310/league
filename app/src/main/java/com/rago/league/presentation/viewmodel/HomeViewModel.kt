@@ -89,7 +89,7 @@ class HomeViewModel @Inject constructor(
     private fun onHideDialogSearch() {
         viewModelScope.launch {
             _homeUIState.update {
-                it.copy(showDialogSearch = false)
+                it.copy(showDialogSearch = false, search = "")
             }
         }
     }
